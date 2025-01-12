@@ -16,7 +16,7 @@ import plotly.io as pio
 
 st.set_page_config(layout="wide")
 
-mypath = "/Users/idinal/Desktop/Data_Science/"
+mypath = ""
 
 mh = pd.read_csv(mypath+'MentalHealth.csv',index_col = 0,nrows=6468)
 mh.index.name = None
