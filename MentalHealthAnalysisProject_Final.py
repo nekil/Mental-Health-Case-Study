@@ -16,7 +16,7 @@ import plotly.io as pio
 
 st.set_page_config(layout="wide")
 
-mypath = ""
+mypath = "/Users/idinal/Desktop/Data_Science/"
 
 mh = pd.read_csv(mypath+'MentalHealth.csv',index_col = 0,nrows=6468)
 mh.index.name = None
@@ -287,7 +287,7 @@ if selected=='Abstract':
 if selected=="Background Information":
     st.title("Background Information")
     st.markdown("The relationship between mental health and happiness has gatherd significant attention in recent years, as researchers seek to find the scientific factors that contribute to overall well-being. Mental health is defined by the World Health Organization (WHO) as a state of well-being in which individuals realize their potential, can cope with the normal stresses of life, and can contribute to their community (WHO). This definition highlights how mental health can affect one in emotional, psychological, and social ways. ")
-    st.markdown("Studies have shown that mental health directly influences happiness. For instance, a meta-analysis by Wood et al. (2010) found a strong correlation between positive mental health and life satisfaction, suggesting that individuals who engage in practices that promote mental well-being, such as mindfulness and social connections, tend to report higher levels of happiness. Furthermore, research by Keyes (2002) emphasizes the importance of flourishing—defined as a high level of mental health—indicating that those who flourish experience greater happiness and life satisfaction compared to those who merely survive.")
+    st.markdown("Studies have shown that mental health directly influences happiness. For instance, a meta-analysis by Wood et al. (2010) <sup>5</sup> found a strong correlation between positive mental health and life satisfaction, suggesting that individuals who engage in practices that promote mental well-being, such as mindfulness and social connections, tend to report higher levels of happiness. Furthermore, research by Keyes (2002)<sup>2</sup> emphasizes the importance of flourishing—defined as a high level of mental health—indicating that those who flourish experience greater happiness and life satisfaction compared to those who merely survive.", unsafe_allow_html=True)
     st.markdown("The data used in this analysis includes survey responses from a diverse population that measures various aspects of mental health (e.g., depression, anxiety, and bipolar disorders). This dataset allows us to manipulate data in order to find the relationship between mental health and happiness, supporting the thesis that enhancing mental health can significantly improve overall happiness. By employing statistical methods such as regression analysis, we can identify specific mental health factors that predict happiness, providing valuable insights for interventions.")
 
 
@@ -297,10 +297,175 @@ if selected=="Background Information":
 
 if selected=="Data Cleaning":
     st.title('Data Cleaning')
+    st.markdown("The data cleaning process mainly involves converting column names, merging datasets, creating new columns, and mapping datasets with dictionaries.")
+    st.markdown("Let's first import the dataset with the first 6468 columns so we have only the data that we will need.")
+    st.code('''
+            mh = pd.read_csv('MentalHealth.csv',index_col = 0,nrows=6468)
+            ''',language='python')
+    st.markdown("Then, a new column named 'sum' is created by adding all the mental problem columns together. This column represents the total percentage of mental problem patients in a country. ")
+    st.code('''
+            mh['sum'] = mh['Schizophrenia (%)'] + mh['Bipolar disorder (%)'] + mh['Eating disorders (%)'] + mh['Anxiety disorders (%)'] + mh['Drug use disorders (%)'] + mh['Depression (%)'] + mh['Alcohol use disorders (%)']
+            ''',language='python')
+    st.markdown("Next, let's rename the columns into easier versions so they can become convenient to use in future data cleaning. ")
+    st.code('''
+            new_columns = []
+for i in mh.columns:
+    if 'disorder' in i.split(' ') or 'disorders' in i.split(' ') or '(%)' in i.split(' '):
+        i = i.split(' ')[0]
+    new_col = i.lower()
+    new_columns.append(new_col)
+mh.columns = new_columns
+            ''',language='python')
+    st.markdown("For graph making, let's create new category columns by creating a function that can help us do all that in one for loop. In the process, we will need to calculate the overall quantiles of this dataset. ")
+    st.code('''
+            def create_cat(col):
+    col_33 = 0.62101746
+    col_66 = 2.868053
+    new_name = col + "_category"
+    mh[new_name] = None
+    mh.loc[mh[col]>2.868053,new_name] = 'High'
+    mh.loc[(mh[col]>0.62101746) & (mh[col]<2.868053),new_name] = 'Medium'
+    mh.loc[mh[col]<0.62101746,new_name] = 'Low'
+    for i in ["schizophrenia","bipolar","eating","anxiety","drug","depression","alcohol","sum"]:
+    create_cat(i)
+            ''',language='python')
+    st.markdown("Now, let's import a new dataset that include the happiness index of 2021 from all over the world. This way, we can analyze the relationship between happiness index and mental health percentages. ")
+    st.code('''
+            world_happiness_2021 = pd.read_csv('world-happiness-report-2021.csv')
+            ''',language='python')
+    st.markdown("After importingh this dataset, we will need to merge it with the previous dataset that we have. To do this, we will need to map the countries in this happiness index dataset into the mental health dataset that we have. ")
+    st.code('''
+            country_region = world_happiness_2021[['Country name','Regional indicator']].set_index('Country name')
+cr_dict = country_region.to_dict()['Regional indicator']
+            ''',language='python')
+    st. markdown("Here,we can create a dictionary that can be used to map the two dictionary together. This dictionary is created by research and it includes all the countries that are not included in the previous dictionary 'cr_dict'. This way, all the countries will be included and  then we can classify the countries into different regions. ")
+    with st.expander("See the exceptioal cr dict"):
+        st.code('''
+        exceptions_cr_dict = {"Cote d'Ivoire":"Sub-Saharan Africa",
+                      "American Samoa":"North America and ANZ",
+                      "Andorra":"Western Europe",
+                      "Angola":"South Africa",
+                      "Antigua and Barbuda":"Latin America and Caribbean",
+                      "Australasia":"North America and ANZ",
+                      "Bahamas":"North America and ANZ",
+                      "Barbados":"North America and ANZ",
+                      "Belize":"North America and ANZ",
+                      "Bermuda":"North America and ANZ",
+                      "Bhutan":"South Asia",
+                      "Brunei":"Southeast Asia",
+                      "Cape Verde":"South Africa",
+                      "Congo":"South Africa",
+                      "Cote d'Ivoire":"Middle East and North Africa",
+                      "Cuba":"North America and ANZ",
+                      "Democratic Republic of Congo":"South Africa",
+                      "Djibouti":"Middle East and North Africa",
+                      "Dominica":"North America and ANZ",
+                      "England":"Western Europe",
+                      "Equatorial Guinea":"South Africa",
+                      "Eritrea":"Middle East and North Africa",
+                      "Fiji":"North America and ANZ",
+                      "Greenland":"North America and ANZ",
+                      "Grenada":"North America and ANZ",
+                      "Guam":"North America and ANZ",
+                      "Guinea-Bissau":"Middle East and North Africa",
+                      "Guyana":"Latin America and Caribbean",
+                      "Kiribati":"North America and ANZ",
+                      "Macedonia":"Central and Eastern Europe",
+                      "Marshall Islands":"North America and ANZ",
+                      "Micronesia (country)":"North America and ANZ",
+                      "North Korea":"East Asia",
+                      "Northern Ireland":"Western Europe",
+                      "Northern Mariana Islands":"North America and ANZ",
+                      "Oceania":"North America and ANZ",
+                      "Oman":"West Asia",
+                      "Palestine":"Middle East and North Africa",
+                      "Papua New Guinea":"North America and ANZ",
+                      "Puerto Rico":"North America and ANZ",
+                      "Qatar":"West Asia",
+                      "Saint Lucia":"North America and ANZ",
+                      "Saint Vincent and the Grenadines":"Latin America and Caribbean",
+                      "Samoa":"North America and ANZ",
+                      "Sao Tome and Principe":"South Africa",
+                      "Scotland":"Western Europe",
+                      "Seychelles":"South Africa",
+                      "Solomon Islands":"North America and ANZ",
+                      "Somalia":"South Africa",
+                      "South Sudan":"Middle East and North Africa",
+                      "Sudan":"Middle East and North Africa",
+                      "Suriname":"Latin America and Caribbean",
+                      "Syria":"Middle East and North Africa",
+                      "Taiwan":"East Asia",
+                      "Timor":"Southeast Asia",
+                      "Tonga":"North America and ANZ",
+                      "Trinidad and Tobago":"North America and ANZ",
+                      "Tropical Latin America":"Latin America and Caribbean",
+                      "United States Virgin Islands":"North America and ANZ",
+                      "Vanuatu":"North America and ANZ",
+                      "Wales":"Western Europe"}
+        ''',language='python')
+    st.markdown("After creating this exceptional dictionary, we can merge it with the previous dictionary and use it for mapping the two datasets, ")
+    st.code('''
+            merged_cr_dict = {**cr_dict, **exceptions_cr_dict}
+mh['region'] = mh['entity'].map(merged_cr_dict)
+            ''')
+    st.markdown("After mapping these two datasets, let's add a new dataset which includes the comments from different mental problem patients on twitter. ")
+    st.code('''
+            comments = pd.read_csv('mental_health_comments.csv')
 
-
-
-
+            ''',language='python')
+    st.markdown("Next, let's include another dataset which inludes the happiness index data from 2005-2020, this dataset can help fill in the gap from the previous happiness index dataset which only included the data from 2021. ")
+    st.code('''
+            wh = pd.read_csv('world-happiness-report.csv')
+            ''',language='python')
+    st.markdown("Also, I added another dataset which includes world population data that will hopefullt help with our investigation and analysis. ")
+    st.code('''
+            wpop = pd.read_csv('world_population.csv')
+            ''',language='python')
+    st.markdown("This is a function for cleaning the column names for the newly added datasets to make sure that the columns with the same meanings have the same name. For example, 'Country name' and 'entity' are the same columns but are named differently in two datasets. So, we will need to unify them using this function. the first few if and elif statements are taking care of the exceptions which can not simply be transformed into the cleaned form. And the final else statement is for cleaning the other statements that have not existed in other datasets. ")
+    st.code('''
+            def clean_wh_col(df):
+    new_Columns = []
+    for c in df.columns:
+        if c == 'Country name':
+            new_c = 'entity'
+        elif c == 'Regional indicator':
+            new_c = 'region'
+        elif c == 'Healthy life expectancy':
+            new_c = 'health'
+        elif c == 'Freedom to make life choices':
+            new_c = 'freedom'
+        elif c == 'Logged GDP per capita':
+            new_c = 'economy'
+        elif c == 'Dystopia + residual':
+            new_c = 'dystopia_residual'
+        elif c == 'Ladder score':
+            new_c = 'happiness_score'
+        else:
+            new_c = '_'.join(c.split(' ')).lower()
+        new_Columns.append(new_c)
+    return new_Columns
+            ''',language='python')
+    with st.expander("This cell is for reindexing the dataframe to make sure one country's data stays together"):
+        st.code('''
+                merged_wh = pd.concat([wh,world_happiness_2021])
+groupby_entity = merged_wh.groupby('entity')
+group_list = []
+for c in merged_wh['entity'].unique():
+    group = groupby_entity.get_group(c)
+    group_list.append(group)
+new_wh = pd.concat(group_list,axis=0).reset_index(drop=True)
+                ''',language='python')
+    st.markdown("Lastly, we can merge all the datasets we have cleaned together using the pd.merge() function. By clarifying the how parameter, we can choose which column in the datasets they have in common and use them as indicators for the merge. ")
+    st.code('''
+            merged_mh = pd.merge(country_mh,new_wh,how='left',on=['entity','year'])
+merged_mh.drop(columns='code',inplace=True,axis=1)
+            ''',language='python')
+    
+    st.markdown("Now, we will take a look at the cleaned dataset that's ready for analysis:")
+    st.code('''
+            print(wp_mh)
+            ''',language='python')
+    st.dataframe(wp_mh)
 
 if selected=="Exploratory Analysis":
 
@@ -912,16 +1077,21 @@ if selected=="Focus analysis on Canada, China, the US and UK":
 if selected=="Conclusion":
     st.title("Conclusion")
 
-
+    st.markdown("Based on the explorations and analysis, it is evident that mental health issues have a significant impact on the happiness indices of each country. The data reveals that countries with higher percentages of individuals experiencing mental health issues such as schizophrenia, bipolar disorder, eating disorders, anxiety, and depression tend to have lower happiness scores. Conversely, lower rates of these mental health issues are associated with higher happiness scores.")
+    st.markdown("Among the mental health issues analyzed, anxiety and depression show a particularly strong negative correlation with happiness scores. This suggests that addressing these common mental health challenges could be a key strategy for improving national happiness levels. The United States, which has higher rates of several mental health issues, also tends to have lower happiness scores compared to countries like the United Kingdom, which has lower rates of these issues but higher happiness scores.")
+    st.markdown("The analysis also highlights that while the United States generally has higher rates of mental health issues, it does not necessarily correlate with higher happiness scores. This indicates that the relationship between mental health and happiness is complex and may be influenced by other factors such as social support, economic conditions, and cultural attitudes towards mental health.")
+    st.markdown("The distribution of mental health issues across different regions and countries further underscores the need for tailored approaches to mental health care. For instance, regions with higher rates of alcohol disorders or drug use may benefit from targeted interventions to address these specific issues.")
+    st.markdown("In conclusion, the analysis provides valuable insights into the relationship between mental health and happiness across different countries. It suggests that improving mental health, particularly by addressing common issues like anxiety and depression, could significantly enhance happiness levels. However, it also highlights the importance of considering the unique mental health landscapes of different regions and countries when designing interventions. By understanding these relationships, policymakers and mental health professionals can develop more effective strategies to promote mental well-being and happiness on a global scale.")
 
 
 if selected=="Bibliography":
     st.title("Bibliography")
 
-
-
-
-
+    st.markdown("[1] Diener, Ed, and Tanya L. Chan. 'Happy People Live Longer: Subjective Well-Being Contributes to Health and Longevity.' Applied Psychology: Health and Well-Being, vol. 3, no. 1, 2011, pp. 1-43. ")
+    st.markdown("[2] Keyes, Corey L. M. 'The Mental Health Continuum: From Languishing to Flourishing in Life.' Journal of Health and Social Behavior, vol. 43, no. 2, 2002, pp. 207-222. ")
+    st.markdown("[3] Morris, Laura. “Alcoholism by Country Statistics [Our World in Data 2021].” Https://Www.abbeycarefoundation.com/, 2021, www.abbeycarefoundation.com/alcohol/alcoholism-by-country-statistics/.")
+    st.markdown("[4] WHO. 'Mental Health: Strengthening Our Response.' World Health Organization, 2018, www.who.int/news-room/fact-sheets/detail/mental-health-strengthening-our-response. ")
+    st.markdown("[5] Wood, Alex M., et al. 'The Role of Positive Mental Health in the Relationship Between Mental Health and Well-Being.' Journal of Happiness Studies, vol. 11, no. 2, 2010, pp. 251-273. ")
 
 
 
