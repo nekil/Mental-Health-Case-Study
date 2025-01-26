@@ -16,7 +16,7 @@ import plotly.io as pio
 
 st.set_page_config(layout="wide")
 
-mypath = ""
+mypath = "/Users/idinal/Desktop/Data_Science/"
 
 mh = pd.read_csv(mypath+'MentalHealth.csv',index_col = 0,nrows=6468)
 mh.index.name = None
@@ -268,8 +268,8 @@ with st.sidebar:
 	selected = option_menu(
 		menu_title = 'Navigation Pane',
 		options = ['Abstract', 'Background Information', 'Data Cleaning', "Exploratory Analysis",  'General analysis','Focus analysis on different continents','Focus analysis on Canada, China, the US and UK', 'Conclusion', 'Bibliography'],
-		menu_icon = 'arrow-down-right-circle-fill',
-		icons = ['bookmark-check', 'book', 'box', 'map', 'boxes', 'book', 'check2-circle', 'map', 'boxes'],
+		menu_icon = 'stars',
+		icons = ['door-open', 'easel3-fill', 'emoji-dizzy-fill', 'dpad-fill', 'emoji-frown', 'emoji-neutral', 'emoji-grin', 'egg-fried', 'door-closed-fill'],
 		default_index = 0
 		)
 
